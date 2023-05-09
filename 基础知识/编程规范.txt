@@ -1,0 +1,52 @@
+1.Mapper阶段
+	（1）用户定义的Mapper要继承自己的父类
+	（2）Mapper的输入数据是KV对的形式（KV的类型可自定义）
+							K：偏移量	V：一行的内容
+	（3）Mapper中的业务逻辑写在map()方法中
+	（4）Mapper的输出数据是KV对的形式（KV的类型可自定义）
+	（5）map()方法（MapTask进程）对每一个<K,V>调用一次
+2.Reducer
+	（1）用户定义的Reducer要继承自己的父类
+	（2）Reducer的输入数据是对应Mapper的输出数据类型（K,V）
+	（3）Reducer中的业务逻辑写在reduce()方法中
+	（4）ReduceTask进程对每一组相同K的<K,V>组调用一次reduce()方法
+3.Driver阶段
+	相当于YARN集群的客户端，用于提交整个程序到YARN集群，
+		提交的是封装了MapReduce程序相关运行参数的job对象
+	1.获取配置信息，获取job对象实例
+	2.指定jar包所在位置
+	3.关联Mapper/Reducer业务类
+	4.指定Mapper输出数据的KV类型
+	5.指定最终输出的数据的KV类型
+	6.指定job的输入原始文件所在目录的路径
+	7.指定job的输出结果所在目录的路径
+	8.提交作业
+	
+	// 设置输入路径和输出路径
+	args = {"D:\\Java\\mapreudcedemo\\src\\main\\java\\org\\example\\mapreduce\\wordcount\\input\\hello.txt",
+			"D:\\Java\\mapreudcedemo\\src\\main\\java\\org\\example\\mapreduce\\wordcount\\output1"};
+	// 1.获取job
+    Configuration conf = new Configuration();
+    Job job = Job.getInstance(conf);
+    // 2.设置jar包路径
+    job.setJarByClass(WordCountDriver.class);
+    
+    // 3.关联mapper和reducer
+    job.setMapperClass(WordCountMapper.class);
+    job.setReducerClass(WordCountReducer.class);
+    
+    // 4.设置map输出KV类型
+    job.setMapOutputKeyClass(Text.class);
+    job.setMapOutputValueClass(IntWritable.class);
+    
+    // 5.设置最终输出的KV类型
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(IntWritable.class);
+    
+    // 6.设置输入路径和输出路径
+    FileInputFormat.setInputPaths(job, new Path(args[0]));
+    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+    
+    // 7.提交job作业
+    boolean result = job.waitForCompletion(true);
+    System.exit(result ? 0 : 1);
